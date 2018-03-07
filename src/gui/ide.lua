@@ -11,52 +11,55 @@ local IDEFILES = {
   NAME = 3
 }
 
-function ide.open(self, app)
-  ide.store = {
-    main = {
-      files = gtk.TreeStore.new({
-        [IDEFILES.TYPE] = gobj.Type.BOOLEAN,
-        [IDEFILES.PATH] = gobj.Type.STRING,
-        [IDEFILES.NAME] = gobj.Type.STRING
-      })
-    }
+function ide.createMainWindow(self, window)
+  ide.main.store = {
+    files = gtk.TreeStore.new({
+      [IDEFILES.TYPE] = gobj.Type.BOOLEAN,
+      [IDEFILES.PATH] = gobj.Type.STRING,
+      [IDEFILES.NAME] = gobj.Type.STRING
+    }),
   }
 
-  ide.gui = {
-    main = {
-      window = gtk.Window({
-        type = gtk.WindowType.TOPLEVEL,
-        default_width = 400,
-        default_height = 300,
-        application = app,
-        title = 'lua-ide',
-        child = gtk.Grid({
-          orientation = gtk.Orientation.Horizontal,
-          column_homogeneous = false,
-          gtk.ScrolledWindow({
-            hexpand = true,
-            gtk.TreeView({
-              model = ide.store.main.files,
-              ['headers-visible'] = false,
-              gtk.TreeViewColumn({
-                resizable = true,
-                { gtk.CellRendererText({}), { text = IDEFILES.NAME } }
-              })
-            })
-          }),
-          gtk.ScrolledWindow({
-            hexpand = true,
-            vexpand = true,
-            gtk.TextView({ id = 'editor', expand = true })
-          })
+  ide.main.paned = gtk.Paned({
+    id = 'main.paned',
+    orientation = gtk.Orientation.Horizontal,
+    gtk.ScrolledWindow({
+      ['width-request'] = 150,
+      child = gtk.TreeView({
+        model = ide.main.store.files,
+        ['headers-visible'] = false,
+        gtk.TreeViewColumn({
+          id = 'main.files.view',
+          resizable = true,
+          { gtk.CellRendererText({}), { text = IDEFILES.NAME } }
         })
       })
-    }
+    }),
+    gtk.ScrolledWindow({
+      child = gtk.TextView({
+        id = 'main.editor.view'
+      })
+    })
+  })
+
+  window.child = ide.main.paned
+end
+
+function ide.open(self, app)
+  ide.main = {
+    window = gtk.Window({
+      type = gtk.WindowType.TOPLEVEL,
+      default_width = 400,
+      default_height = 300,
+      application = app,
+      title = 'slide'
+    })
   }
 
-  ide:listDirectory(os.getenv('HOME'), ide.store.main.files)
-  ide.gui.main.window:show_all()
-  return ide.gui.main.window
+  ide:createMainWindow(ide.main.window)
+  ide:listDirectory(os.getenv('HOME'), ide.main.store.files)
+  ide.main.window:show_all()
+  return ide.main.window
 end
 
 function ide.listDirectory(self, directory, store)
