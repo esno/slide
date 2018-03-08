@@ -1,5 +1,6 @@
 local lgi = require('lgi')
 local gtk = lgi.require('Gtk', '3.0')
+local gtks = lgi.GtkSource
 local gobj = lgi.GObject
 local lfs = require('lfs')
 
@@ -36,7 +37,7 @@ function ide.createMainWindow(self, window)
       })
     }),
     gtk.ScrolledWindow({
-      child = gtk.TextView({
+      child = gtks.View({
         id = 'main.editor.view'
       })
     })
